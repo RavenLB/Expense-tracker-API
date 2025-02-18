@@ -66,9 +66,12 @@ class ExpenseList(MethodView):
     @blp.response(201, ExpenseSchema)
     def post(self, expense_data):
         user_id = get_jwt_identity()
-        if not CategoryModel.query.get(expense_data["category_id"]):
-            abort(404, message="Category not found.")
-
+        
+        # Check if category_id is provided and exists
+        if expense_data.get("category_id"):
+            if not CategoryModel.query.get(expense_data["category_id"]):
+                abort(404, message="Category not found.")
+        
         expense = ExpenseModel(**expense_data, user_id=user_id)
         try:
             db.session.add(expense)
@@ -92,7 +95,7 @@ class ExpenseSummary(MethodView):
         
         categories = {}
         for expense in expenses:
-            cat_name = expense.category.name
+            cat_name = expense.category.name if expense.category else "Uncategorized"
             categories[cat_name] = categories.get(cat_name, 0) + expense.amount
 
         return {
@@ -130,7 +133,7 @@ class ExpensePeriodSummary(MethodView):
 
         categories = {}
         for expense in expenses:
-            cat_name = expense.category.name
+            cat_name = expense.category.name if expense.category else "Uncategorized"
             categories[cat_name] = categories.get(cat_name, 0) + expense.amount
 
         return {
