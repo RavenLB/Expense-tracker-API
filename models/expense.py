@@ -9,8 +9,8 @@ class ExpenseModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
     amount = db.Column(db.Float(precision=2), nullable=False)
-    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    category_id = db.Column(db.Integer, db.ForeignKey("categories.id"), nullable=False)
+    date = db.Column(db.Date, nullable=False, default=datetime.now().date())
+    category_id = db.Column(db.Integer, db.ForeignKey("categories.id", ondelete="SET NULL"), nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
     category = db.relationship("CategoryModel", back_populates="expenses")
