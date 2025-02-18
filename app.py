@@ -9,6 +9,7 @@ from resources.expense import blp as ExpenseBlueprint
 from resources.user import blp as UserBlueprint
 from resources.categories import blp as CategoryBlueprint
 from dotenv import load_dotenv
+from datetime import timedelta
 
 def create_app(db_url=None):
     app = Flask(__name__)
@@ -25,24 +26,13 @@ def create_app(db_url=None):
     app.config["SQLALCHEMY_DATABASE_URI"] = db_url or os.getenv("DATABASE_URL", "sqlite:///database.db")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["PROPAGATE_EXCEPTIONS"] = True
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=30)  # Tokens last 30 days
     db.init_app(app)
     migrate = Migrate(app, db)
     api = Api(app)
 
-    app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "dev-key-please-change")
+    app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
     jwt = JWTManager(app)
-
-    @jwt.needs_fresh_token_loader
-    def token_not_fresh_callback(jwt_header, jwt_payload):
-        return (
-            jsonify(
-                {
-                    "description": "The token is not fresh.",
-                    "error": "fresh_token_required",
-                }
-            ),
-            401,
-        )
 
     @jwt.token_in_blocklist_loader
     def check_if_token_in_blocklist(jwt_header, jwt_payload):
